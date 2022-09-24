@@ -1,0 +1,1 @@
+This is a layer where we make a http request to back-end and take the response which will be passed to the components that are bind to html pages

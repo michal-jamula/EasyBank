@@ -1,0 +1,1 @@
+models data that we're transferring from UI to back-end

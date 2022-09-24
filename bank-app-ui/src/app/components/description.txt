@@ -1,0 +1,1 @@
+holds components for each part of the html pages

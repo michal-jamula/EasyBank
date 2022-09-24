@@ -21,6 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
+/**
+ * This class isn't needed as spring security provides login functionality automatically.
+ * The only point of this class being here is to show how to manually authenticate users
+ * when logging in
+ */
 @Component
 public class EasyBankUsernamePwdAuthenticationProvider implements AuthenticationProvider {
 
@@ -35,6 +41,7 @@ public class EasyBankUsernamePwdAuthenticationProvider implements Authentication
         String username = authentication.getName();
         String pwd = authentication.getCredentials().toString();
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(username);
+
         if (optionalCustomer.isPresent()) {
             Customer customer = optionalCustomer.get();
             if (passwordEncoder.matches(pwd, customer.getPwd())) {

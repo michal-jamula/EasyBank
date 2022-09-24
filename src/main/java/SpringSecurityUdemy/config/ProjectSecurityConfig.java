@@ -4,78 +4,63 @@ package SpringSecurityUdemy.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.SecurityBuilder;
+import org.springframework.security.config.annotation.SecurityConfigurer;
+import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.sql.DataSource;
+import javax.servlet.http.HttpServletRequest;
+import java.net.HttpRetryException;
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
-public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
-
+public class ProjectSecurityConfig {
 
     /**
      * From Spring Security 5.7, the WebSecurityConfigurerAdapter is deprecated to encourage users
      * to move towards a component-based security configuration. It is recommended to create a bean
      * of type SecurityFilterChain for security related configurations.
+     *
      * @param http
      * @return SecurityFilterChain
      * @throws Exception
      */
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/myAccount").authenticated().antMatchers("/myBalance").authenticated()
-                .antMatchers("/myLoans").authenticated().antMatchers("/myCards").authenticated().antMatchers("/notices")
-                .permitAll().antMatchers("/contact").permitAll().and().formLogin().and().httpBasic();
+        http.cors().configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                        config.setAllowedMethods(Collections.singletonList("*"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setMaxAge(3600L);
+                        return config;
+                    }
+                }).and().csrf().ignoringAntMatchers("/contact").
+                csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and().authorizeHttpRequests((auth) -> auth
+                        .antMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/dashboard").authenticated()
+                        .antMatchers("/notices", "/contact").permitAll()
+                ).httpBasic(Customizer.withDefaults());
+        return http.build();
+
     }
-
-        /**
-         * Default configurations which will secure all the requests
-         */
-		/*((ExpressionUrlAuthorizationConfigurer.AuthorizedUrl)http.authorizeRequests().anyRequest()).
-				authenticated();
-		http.formLogin();
-		http.httpBasic();
-		return (SecurityFilterChain)http.build();*/
-
-        /**
-         * Custom configurations as per our requirement
-         */
-/*        http.authorizeHttpRequests( (auth)->auth
-                .antMatchers("/myAccount","/myBalance","/myLoans","/myCards").authenticated()
-                .antMatchers("/notices","/contact").permitAll()
-        ).httpBasic(Customizer.withDefaults());
-        return http.build();*/
-
-        /**
-         * Configuration to deny all the requests
-         */
-/*		http.authorizeHttpRequests( (auth)->auth
-				.anyRequest().denyAll())
-				.httpBasic(Customizer.withDefaults());
-		return http.build();*/
-
-        /**
-         * Configuration to permit all the requests
-         */
-/*		http.authorizeHttpRequests( (auth)->auth
-						.anyRequest().permitAll())
-				.httpBasic(Customizer.withDefaults());
-		return http.build();
-    }*/
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
-
-/*    @Bean
-    public UserDetailsService userDetailsService(DataSource dataSource) {
-        return new JdbcUserDetailsManager(dataSource);
-    }*/
 }

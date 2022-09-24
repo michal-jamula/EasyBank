@@ -11,8 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-//Here can implement UserDetailsManager to create more methods, including password change etc
+//Here can implement UserDetailsManager to create more methods, like password change etc
 @Service
 public class EasyBankUserDetails implements UserDetailsService {
 
@@ -22,11 +23,13 @@ public class EasyBankUserDetails implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        List<Customer> customer = new ArrayList<>();
-        customer.add(customerRepository.findByEmail(username));
-        if (customer.size() == 0) {
+        Optional<Customer> customerOptional = customerRepository.findByEmail(username);
+
+        if (!customerOptional.isPresent()) {
             throw new UsernameNotFoundException("User details not for for the following user: " + username);
+        } else {
+            Customer customer = customerOptional.get();
+            return new SecurityCustomer(customer);
         }
-        return new SecurityCustomer(customer.get(0));
     }
 }
