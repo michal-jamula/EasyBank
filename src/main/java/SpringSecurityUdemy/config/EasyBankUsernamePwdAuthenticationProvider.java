@@ -1,5 +1,6 @@
 package SpringSecurityUdemy.config;
 
+import SpringSecurityUdemy.model.Authority;
 import SpringSecurityUdemy.model.Customer;
 import SpringSecurityUdemy.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 
 /**
@@ -45,15 +47,21 @@ public class EasyBankUsernamePwdAuthenticationProvider implements Authentication
         if (optionalCustomer.isPresent()) {
             Customer customer = optionalCustomer.get();
             if (passwordEncoder.matches(pwd, customer.getPwd())) {
-                List<GrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(new SimpleGrantedAuthority(customer.getRole()));
-                return new UsernamePasswordAuthenticationToken(username, pwd, authorities);
+                return new UsernamePasswordAuthenticationToken(username, pwd, getGrantedAuthorities(customer.getAuthorities()));
             } else {
                 throw new BadCredentialsException("Invalid password!");
             }
         }else {
             throw new BadCredentialsException("No user registered with this details!");
         }
+    }
+
+    private List<GrantedAuthority> getGrantedAuthorities(Set<Authority> authorities) {
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        for (Authority authority : authorities) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(authority.getName()));
+        }
+        return grantedAuthorities;
     }
 
     @Override

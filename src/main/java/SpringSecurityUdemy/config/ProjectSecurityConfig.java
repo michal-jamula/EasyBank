@@ -26,15 +26,7 @@ import java.util.Collections;
 @Configuration
 public class ProjectSecurityConfig {
 
-    /**
-     * From Spring Security 5.7, the WebSecurityConfigurerAdapter is deprecated to encourage users
-     * to move towards a component-based security configuration. It is recommended to create a bean
-     * of type SecurityFilterChain for security related configurations.
-     *
-     * @param http
-     * @return SecurityFilterChain
-     * @throws Exception
-     */
+
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
@@ -52,7 +44,17 @@ public class ProjectSecurityConfig {
                 }).and().csrf().ignoringAntMatchers("/contact").
                 csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and().authorizeHttpRequests((auth) -> auth
-                        .antMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/dashboard").authenticated()
+                        /*
+                         * Here AntMatchers have been used, but can also use mvcMathers or regexMathers
+                         * mvcMatchers is regarded as more secure
+                         *      e.g. mavMatchers(/"secured") will match /secured, /secured/, /secured.html and other file extensions
+                         * use regexMatchers for a more complex path options */
+                         //      e.g. regexMatchers(".*/(en|es)") will look for any folders named "en" or "es"
+
+                        .antMatchers("/myAccount").hasRole("USER")
+                        .antMatchers("/myBalance").hasAnyRole("USER","ADMIN")
+                        .antMatchers("/myLoans").hasRole("ROOT")
+                        .antMatchers( "/myCards", "/user").authenticated()
                         .antMatchers("/notices", "/contact").permitAll()
                 ).httpBasic(Customizer.withDefaults());
         return http.build();

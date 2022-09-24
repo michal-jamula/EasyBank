@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -25,4 +26,10 @@ public class Customer {
     private String role;
     @Column(name = "create_dt")
     private String createDt;
+
+    //JsonIgnore will not send this value to the front end, so the users will not know what authorities they have
+    //Fetch type EAGER will load the authority values when the customer is being loaded.
+    @JsonIgnore
+    @OneToMany(mappedBy="customer",fetch=FetchType.EAGER)
+    private Set<Authority> authorities;
 }
