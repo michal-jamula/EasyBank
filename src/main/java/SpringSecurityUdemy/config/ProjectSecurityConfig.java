@@ -1,9 +1,7 @@
 package SpringSecurityUdemy.config;
 
 
-import SpringSecurityUdemy.filter.AuthoritiesLoggingAfterFilter;
-import SpringSecurityUdemy.filter.AuthoritiesLoggingAtFilter;
-import SpringSecurityUdemy.filter.RequestValidationBeforeFilter;
+import SpringSecurityUdemy.filter.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -13,6 +11,7 @@ import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,7 +33,9 @@ public class ProjectSecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
-        http.cors().configurationSource(new CorsConfigurationSource() {
+        //This first lines disables the creation of JSESSION token (which is enabled by default)
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .cors().configurationSource(new CorsConfigurationSource() {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration config = new CorsConfiguration();
@@ -42,16 +43,18 @@ public class ProjectSecurityConfig {
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowCredentials(true);
                         config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setExposedHeaders(Arrays.asList("Authorization"));
                         config.setMaxAge(3600L);
                         return config;
                     }
-                }).and().csrf().ignoringAntMatchers("/contact").
-                csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .and()
+                }).and().csrf().disable() // From this point CSRF is disabled because we're going to use JWT tokens
+
 
                 //This is how to add new authentication and business logic filters into the application
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
                 .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
 
 
