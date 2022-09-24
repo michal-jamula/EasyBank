@@ -1,6 +1,9 @@
 package SpringSecurityUdemy.config;
 
 
+import SpringSecurityUdemy.filter.AuthoritiesLoggingAfterFilter;
+import SpringSecurityUdemy.filter.AuthoritiesLoggingAtFilter;
+import SpringSecurityUdemy.filter.RequestValidationBeforeFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -13,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,7 +47,15 @@ public class ProjectSecurityConfig {
                     }
                 }).and().csrf().ignoringAntMatchers("/contact").
                 csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .and().authorizeHttpRequests((auth) -> auth
+                .and()
+
+                //This is how to add new authentication and business logic filters into the application
+                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
+
+
+                .authorizeHttpRequests((auth) -> auth
                         /*
                          * Here AntMatchers have been used, but can also use mvcMathers or regexMathers
                          * mvcMatchers is regarded as more secure
