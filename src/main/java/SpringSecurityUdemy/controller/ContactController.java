@@ -3,6 +3,7 @@ package SpringSecurityUdemy.controller;
 import SpringSecurityUdemy.model.Contact;
 import SpringSecurityUdemy.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ public class ContactController {
     private ContactRepository contactRepository;
 
     @PostMapping("/contact")
+    @PreFilter("filterObject.contactName == 'Test'") //Blocks a contact enquiry coming from a "Test" name
     public Contact saveContactInquiryDetails(@RequestBody Contact contact) {
         contact.setContactId(getServiceReqNumber());
         contact.setCreateDt(new Date(System.currentTimeMillis()));

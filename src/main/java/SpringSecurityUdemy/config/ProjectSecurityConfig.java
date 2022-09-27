@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.SecurityBuilder;
 import org.springframework.security.config.annotation.SecurityConfigurer;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true,securedEnabled = true,  jsr250Enabled = true)
 public class ProjectSecurityConfig {
 
 
@@ -67,9 +69,8 @@ public class ProjectSecurityConfig {
                          //      e.g. regexMatchers(".*/(en|es)") will look for any folders named "en" or "es"
 
                         .antMatchers("/myAccount").hasRole("USER")
-                        .antMatchers("/myBalance").hasAnyRole("USER","ADMIN")
-                        .antMatchers("/myLoans").hasRole("ROOT")
-                        .antMatchers( "/myCards", "/user").authenticated()
+                        .antMatchers("/myBalance", "/myCards").hasAnyRole("USER","ADMIN")
+                        .antMatchers("/myLoans", "/user").authenticated()
                         .antMatchers("/notices", "/contact").permitAll()
                 ).httpBasic(Customizer.withDefaults());
         return http.build();
