@@ -1,6 +1,6 @@
 # EasyBank
 <br>
-This project is part of a Udemy Course which focuses on teaching spring security, I haven't implemented these in my other project because I want to finish with basic functionality before going implementing SS.
+This project is part of an online course.
 <br><br>
 
 These are some of the topics covered in the course:
